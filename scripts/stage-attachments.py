@@ -15,8 +15,11 @@ import sys
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ENCY = r"C:\Users\Marco\Desktop\extracted-apps\bible-encyclopedia"
-BIDAA = r"C:\Users\Marco\Desktop\extracted-apps\bidaa-wa-hartaqat"
+# The extracted source apps sit beside the project folder, in extracted-apps/.
+# Set ENCYCLOPEDIA_SOURCE / BIDAA_SOURCE to read them from somewhere else.
+EXTRACTED = os.path.join(os.path.dirname(ROOT), "extracted-apps")
+ENCY = os.environ.get("ENCYCLOPEDIA_SOURCE", os.path.join(EXTRACTED, "bible-encyclopedia"))
+BIDAA = os.environ.get("BIDAA_SOURCE", os.path.join(EXTRACTED, "bidaa-wa-hartaqat"))
 ATTACH = os.path.join(ROOT, "attachments")
 SKIP = {"no_file.html"}
 ORPHAN_PHRASES = ("أفلوطين", "بلاجيوس", "ماسون", "ملخص المورمون")
