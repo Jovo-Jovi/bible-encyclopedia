@@ -1,0 +1,32 @@
+name: Remove temporary files
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete temporary upload pieces
+        run: |
+          set -euo pipefail
+          git config user.name "jiovanny adel"
+          git config user.email "175926007+Jovo-Jovi@users.noreply.github.com"
+          git rm -r --ignore-unmatch \
+            public/_b public/_c public/_l public/_p \
+            public/_bintest.bin public/_tiny.png \
+            public/readme.parts public/readme.png.parts \
+            attachments/003.txt attachments/017.txt attachments/018.txt \
+            attachments/021.txt attachments/046.txt attachments/049.txt \
+            attachments/catalog-2.json.gz.b64.15 \
+            public/data/sections/bible.json.gz.b64.00 \
+            public/data/sections/bible.json.gz.b64.01 \
+            public/data/sections/bible.json.gz.b64.02 \
+            .github/workflows/remove-temp.yml
+          if git diff --cached --quiet; then
+            echo "nothing to delete"
+            exit 0
+          fi
+          git commit -m "Remove temporary upload pieces"
+          git push
