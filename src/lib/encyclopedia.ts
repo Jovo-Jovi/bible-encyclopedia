@@ -48,8 +48,13 @@ export function loadSection(slug: string): Promise<SectionFile> {
   return pending;
 }
 
+/** Article files live in folders of 100: id 18800 → /data/bodies/188/18800.json. */
+export function bodyPath(id: number): string {
+  return `/data/bodies/${Math.floor(id / 100)}/${id}.json`;
+}
+
 export function loadBody(id: number): Promise<BodyFile> {
-  return fetch(`/data/bodies/${id}.json`).then((res) => {
+  return fetch(bodyPath(id)).then((res) => {
     if (!res.ok) throw new Error("النص غير متاح");
     return res.json() as Promise<BodyFile>;
   });

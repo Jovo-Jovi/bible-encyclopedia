@@ -106,17 +106,18 @@ body {
   mask-image: url("/art/cross.png");
 }
 
+/* Section image as a full-screen backdrop: it covers the whole viewport on any
+   screen size or zoom (the veil is position: fixed), is enlarged to fill, and
+   softly blurred. The negative inset hides the faded edges that blur leaves. */
 .veil-mark {
-  width: min(100vw, 880px);
-  aspect-ratio: 1;
-  left: 50%;
-  top: 6.5rem;
-  translate: -50% 0;
-  opacity: 0.28;
+  inset: -3rem;
+  opacity: 0.26;
   background-color: transparent;
   background-repeat: no-repeat;
-  background-position: center top;
-  background-size: contain;
+  background-position: center;
+  background-size: cover;
+  filter: blur(6px);
+  transform: scale(1.04);
   -webkit-mask-image: none;
   mask-image: none;
 }
@@ -320,7 +321,7 @@ body {
   .veil-corner { width: 148px; opacity: 0.36; }
   .veil-tl, .veil-tr { top: 3.75rem; }
   .veil-cross { opacity: 0.07; top: 8rem; }
-  .veil-mark { width: min(120vw, 640px); top: 5rem; opacity: 0.32; }
+  .veil-mark { opacity: 0.3; filter: blur(5px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

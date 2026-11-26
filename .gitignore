@@ -10,3 +10,13 @@ artifacts
 screenshots
 *.log
 .DS_Store
+
+# Encyclopedia source texts. Kept on disk so scripts/build-encyclopedia.py can
+# rebuild public/data and src/data/catalog.ts; the site serves public/data only.
+attachments/
+
+# Images decoded from their committed .b64 copies by scripts/unpack-binary.mjs.
+public/*.png
+public/og.jpg
+public/art/**/*.png
+public/__grok/**/*.png

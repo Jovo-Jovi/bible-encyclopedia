@@ -16,210 +16,210 @@ export type ReadLink = {
 
 export const catalog = {
   "articleCount": 22839,
-  "bodyCount": 72,
+  "bodyCount": 22838,
   "sections": [
     {
       "slug": "02",
       "name": "02-تفسير الكتاب المقدس",
       "label": "التفسير",
       "count": 3025,
-      "bodies": 0
+      "bodies": 3025
     },
     {
       "slug": "05",
       "name": "05-شبهات الكتاب المقدس",
       "label": "الشبهات والردود",
       "count": 1066,
-      "bodies": 0
+      "bodies": 1066
     },
     {
       "slug": "06",
       "name": "06-مسابقات الكتاب المقدس",
       "label": "مسابقات",
       "count": 75,
-      "bodies": 0
+      "bodies": 75
     },
     {
       "slug": "07",
       "name": "07-شخصيات الكتاب المقدس",
       "label": "شخصيات الكتاب",
       "count": 320,
-      "bodies": 0
+      "bodies": 320
     },
     {
       "slug": "09",
       "name": "09-مريم العذراء القديسة",
       "label": "العذراء مريم",
       "count": 452,
-      "bodies": 0
+      "bodies": 452
     },
     {
       "slug": "11",
       "name": "11-بدع وهرطقات",
       "label": "البدع والهرطقات",
       "count": 380,
-      "bodies": 72
+      "bodies": 380
     },
     {
       "slug": "12",
       "name": "12-كتب ابوكريفا",
       "label": "الأبوكريفا",
       "count": 1067,
-      "bodies": 0
+      "bodies": 1067
     },
     {
       "slug": "13",
       "name": "13-اسئلة مسيحية",
       "label": "أسئلة مسيحية",
       "count": 618,
-      "bodies": 0
+      "bodies": 618
     },
     {
       "slug": "14",
       "name": "14-علم الاباء",
       "label": "علم الآباء",
       "count": 1378,
-      "bodies": 0
+      "bodies": 1378
     },
     {
       "slug": "15",
       "name": "15-علم الاخرويات",
       "label": "الأخرويات",
       "count": 85,
-      "bodies": 0
+      "bodies": 85
     },
     {
       "slug": "16",
       "name": "16-علم الانسان",
       "label": "علم الإنسان",
       "count": 418,
-      "bodies": 0
+      "bodies": 418
     },
     {
       "slug": "17",
       "name": "17-علم التاريخ",
       "label": "التاريخ الكنسي",
       "count": 801,
-      "bodies": 0
+      "bodies": 801
     },
     {
       "slug": "18",
       "name": "18-علم الخلاص",
       "label": "الخلاص",
       "count": 111,
-      "bodies": 0
+      "bodies": 111
     },
     {
       "slug": "19",
       "name": "19-علم الكتاب المقدس",
       "label": "علوم الكتاب",
       "count": 297,
-      "bodies": 0
+      "bodies": 297
     },
     {
       "slug": "20",
       "name": "20-علم الكنيسة",
       "label": "الكنيسة",
       "count": 84,
-      "bodies": 0
+      "bodies": 84
     },
     {
       "slug": "21",
       "name": "21-علم الله",
       "label": "الله",
       "count": 143,
-      "bodies": 0
+      "bodies": 143
     },
     {
       "slug": "22",
       "name": "22-علم المسيح",
       "label": "المسيح",
       "count": 934,
-      "bodies": 0
+      "bodies": 933
     },
     {
       "slug": "23",
       "name": "23-علم الملائكة",
       "label": "الملائكة",
       "count": 86,
-      "bodies": 0
+      "bodies": 86
     },
     {
       "slug": "24",
       "name": "24-اللاهوت الادبي",
       "label": "اللاهوت الأدبي",
       "count": 15,
-      "bodies": 0
+      "bodies": 15
     },
     {
       "slug": "25",
       "name": "25-اللاهوت الدستوري",
       "label": "اللاهوت الدستوري",
       "count": 256,
-      "bodies": 0
+      "bodies": 256
     },
     {
       "slug": "26",
       "name": "26-اللاهوت الدفاعي",
       "label": "اللاهوت الدفاعي",
       "count": 250,
-      "bodies": 0
+      "bodies": 250
     },
     {
       "slug": "27",
       "name": "27-اللاهوت الرعوي",
       "label": "اللاهوت الرعوي",
       "count": 5,
-      "bodies": 0
+      "bodies": 5
     },
     {
       "slug": "28",
       "name": "28-اللاهوت الروحي",
       "label": "اللاهوت الروحي",
       "count": 430,
-      "bodies": 0
+      "bodies": 430
     },
     {
       "slug": "29",
       "name": "29-اللاهوت الطقسي",
       "label": "اللاهوت الطقسي",
       "count": 574,
-      "bodies": 0
+      "bodies": 574
     },
     {
       "slug": "30",
       "name": "30-اللاهوت العقيدي",
       "label": "اللاهوت العقيدي",
       "count": 197,
-      "bodies": 0
+      "bodies": 197
     },
     {
       "slug": "31",
       "name": "31-اللاهوت المقارن",
       "label": "اللاهوت المقارن",
       "count": 414,
-      "bodies": 0
+      "bodies": 414
     },
     {
       "slug": "32",
       "name": "32-اللاهوت النظري",
       "label": "اللاهوت النظري",
       "count": 23,
-      "bodies": 0
+      "bodies": 23
     },
     {
       "slug": "33",
       "name": "33-المسيحية والاسلام",
       "label": "المسيحية والإسلام",
       "count": 1328,
-      "bodies": 0
+      "bodies": 1328
     },
     {
       "slug": "bible",
       "name": "bible",
       "label": "نصوص الكتاب المقدس",
       "count": 8007,
-      "bodies": 0
+      "bodies": 8007
     }
   ],
   "reads": [
@@ -576,7 +576,7 @@ export const catalog = {
     {
       "slug": "11",
       "id": 5137,
-      "title": "ملخص المورمون من الألف إلى الياء",
+      "title": "Normal",
       "label": "البدع والهرطقات",
       "chars": 27675
     },
@@ -688,7 +688,7 @@ export const catalog = {
     {
       "slug": "11",
       "id": 5209,
-      "title": "شهود يهوه والمؤامرة الماسونية ضد المسيحية",
+      "title": "Yahova Witnesses",
       "label": "البدع والهرطقات",
       "chars": 24149
     },

@@ -1,22 +1,30 @@
-import { gunzipSync } from "node:zlib";
+// Decodes the images stored as base64 text (public/**/name.png.b64 -> name.png)
+// before `vite build`, so icons, decorations and the share card ship as real files.
+//
+// public/data is skipped: the encyclopedia JSON is committed as plain files and
+// regenerated only by scripts/build-encyclopedia.py. Old packed copies
+// (*.gz.b64) are never decoded, so they can't overwrite the current text.
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const root = path.resolve(import.meta.dirname, "..");
+const publicDir = path.resolve(import.meta.dirname, "..", "public");
+const skipDirs = new Set([path.join(publicDir, "data")]);
 
 async function walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
   const found = [];
   for (const entry of entries) {
-    if (entry.name === "node_modules" || entry.name === ".git") continue;
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) found.push(...(await walk(full)));
-    else found.push(full);
+    if (entry.isDirectory()) {
+      if (!skipDirs.has(full)) found.push(...(await walk(full)));
+    } else {
+      found.push(full);
+    }
   }
   return found;
 }
 
-const files = await walk(root);
+const files = await walk(publicDir);
 let wrote = 0;
 
 for (const file of files) {
@@ -30,27 +38,4 @@ for (const file of files) {
   }
 }
 
-const groups = new Map();
-for (const file of files) {
-  const name = path.basename(file);
-  const match = name.match(/^(.*)\.gz\.b64(?:\.(\d+))?$/);
-  if (!match) continue;
-  const key = path.join(path.dirname(file), match[1]);
-  const list = groups.get(key) ?? [];
-  list.push(file);
-  groups.set(key, list);
-}
-
-for (const [target, parts] of groups) {
-  parts.sort();
-  try {
-    const text = (await Promise.all(parts.map((part) => readFile(part, "utf8")))).join("");
-    const json = gunzipSync(Buffer.from(text.replace(/\s/g, ""), "base64"));
-    await writeFile(target, json);
-    wrote += 1;
-  } catch (err) {
-    console.warn(`[unpack] skipped ${target}: ${err.message}`);
-  }
-}
-
-if (wrote) console.log(`[unpack] wrote ${wrote} files`);
+console.log(`[unpack] wrote ${wrote} files`);
