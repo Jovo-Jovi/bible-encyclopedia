@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Shell } from "@/components/shell";
+import { SkeletonRows } from "@/components/skeleton";
 import { catalog, type SectionMeta } from "@/data/catalog";
 import { arNum, GROUPS, loadSearch, normalizeAr } from "@/lib/encyclopedia";
 import { useReading } from "@/lib/reading";
@@ -179,7 +180,7 @@ function SearchResults({
     return <p className="mt-6 text-muted">تعذر تحميل الفهرس.</p>;
   }
   if (!ready) {
-    return <p className="mt-6 text-muted">نجهّز الفهرس…</p>;
+    return <SkeletonRows count={7} />;
   }
   if (hits.length === 0) {
     return <p className="mt-6 text-muted">لا عنوان يطابق هذا البحث.</p>;

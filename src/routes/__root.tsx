@@ -1,20 +1,12 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
-import { getRequestUrl } from "@tanstack/react-start/server";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { shareImage } from "@/lib/share-image";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "موسوعة الكتاب المقدس";
 const DESCRIPTION =
   "فهرس عربي لموسوعة الكتاب المقدس. ابحث في العناوين، وافتح القسم، واقرأ النص حين يكون مرفوعاً.";
-
-function shareImage() {
-  try {
-    return new URL("/og.jpg", getRequestUrl({ xForwardedHost: true })).href;
-  } catch {
-    return "/og.jpg";
-  }
-}
 
 export const Route = createRootRoute({
   head: () => {
