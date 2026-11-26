@@ -22,8 +22,12 @@ let wrote = 0;
 for (const file of files) {
   if (!file.endsWith(".b64") || file.includes(".gz.b64")) continue;
   const text = await readFile(file, "utf8");
-  await writeFile(file.slice(0, -4), Buffer.from(text.replace(/\s/g, ""), "base64"));
-  wrote += 1;
+  try {
+    await writeFile(file.slice(0, -4), Buffer.from(text.replace(/\s/g, ""), "base64"));
+    wrote += 1;
+  } catch (err) {
+    console.warn(`[unpack] skipped ${file}: ${err.message}`);
+  }
 }
 
 const groups = new Map();
@@ -39,10 +43,14 @@ for (const file of files) {
 
 for (const [target, parts] of groups) {
   parts.sort();
-  const text = (await Promise.all(parts.map((part) => readFile(part, "utf8")))).join("");
-  const json = gunzipSync(Buffer.from(text.replace(/\s/g, ""), "base64"));
-  await writeFile(target, json);
-  wrote += 1;
+  try {
+    const text = (await Promise.all(parts.map((part) => readFile(part, "utf8")))).join("");
+    const json = gunzipSync(Buffer.from(text.replace(/\s/g, ""), "base64"));
+    await writeFile(target, json);
+    wrote += 1;
+  } catch (err) {
+    console.warn(`[unpack] skipped ${target}: ${err.message}`);
+  }
 }
 
 if (wrote) console.log(`[unpack] wrote ${wrote} files`);
