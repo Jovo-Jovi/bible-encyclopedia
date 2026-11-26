@@ -7,7 +7,7 @@
 ### The Arabic Bible Encyclopedia — twenty-two thousand articles, one quiet place to read.
 
 <p>
-  <a href="https://bible-encyclopedia-jiovannys-projects-0219772b.vercel.app"><img src=".github/assets/button-read.svg" alt="Read it live" /></a>
+  <a href="https://bible-encyclopedia.vercel.app/?q="><img src=".github/assets/button-read.svg" alt="Read it live" /></a>
 </p>
 
 <p>
@@ -18,7 +18,7 @@
   <img src=".github/assets/badge-license.svg" alt="Reader licensed MIT" />
 </p>
 
-<a href="https://bible-encyclopedia-jiovannys-projects-0219772b.vercel.app">
+<a href="https://bible-encyclopedia.vercel.app/?q=">
   <img src=".github/assets/home.jpg" alt="The home page of the Bible encyclopedia: a search box and illustrated section cards" width="100%" />
 </a>
 
