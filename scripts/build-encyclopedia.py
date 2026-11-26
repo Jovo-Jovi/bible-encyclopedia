@@ -18,8 +18,14 @@ import os
 import re
 import shutil
 import sys
+from collections import Counter, defaultdict
+
+from encyclopedia_cleanup import TITLE_OVERRIDES, norm as norm_text, clean as clean_text
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Review lists of what the cleanup removed or renamed. attachments/ is not in git.
+CLEANUP_REPORT = os.path.join(ROOT, "attachments", "_cleanup-report.tsv")
+SAME_TITLES_REPORT = os.path.join(ROOT, "attachments", "_same-titles.tsv")
 ATTACH = os.path.join(ROOT, "attachments")
 CATALOG_PATH = os.path.join(ATTACH, "catalog-2.json")
 DATA = os.path.join(ROOT, "public", "data")
@@ -147,8 +153,7 @@ def is_arabic(value: str) -> bool:
     return arabic >= 8 and arabic >= latin
 
 
-def to_blocks(text: str) -> list[dict]:
-    paras = paragraphs(text)
+def to_blocks(paras: list[str]) -> list[dict]:
     blocks: list[dict] = []
     index = 0
     while index < len(paras):
@@ -228,6 +233,42 @@ def recount(node: dict) -> tuple[int, int]:
     return count, bodies
 
 
+def write_cleanup_reports(log: list[tuple], trees: dict, label_by_section: dict) -> None:
+    """Write what the cleanup changed, and same-named titles in one folder, for review."""
+    tsv = lambda value: str(value).replace("\t", " ").replace("\n", " ")[:200]
+    with open(CLEANUP_REPORT, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write("id\tkind\ttext\n")
+        for article_id, kind, text in log:
+            handle.write(f"{article_id}\t{kind}\t{tsv(text)}\n")
+
+    rows = []
+
+    def walk(node: dict, trail: list[str], section_label: str) -> None:
+        groups: dict[str, list[dict]] = defaultdict(list)
+        for doc in node["docs"]:
+            groups[norm_text(doc["title"])].append(doc)
+        for docs in groups.values():
+            if len(docs) > 1:
+                where = " / ".join([section_label, *trail])
+                for doc in docs:
+                    rows.append((where, doc["id"], doc["title"]))
+        for child in node["dirs"]:
+            walk(child, trail + [child["label"]], section_label)
+
+    for name, tree in trees.items():
+        walk(tree, [], label_by_section.get(name, (None, name))[1])
+    with open(SAME_TITLES_REPORT, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write("folder\tid\ttitle\n")
+        for where, doc_id, title in rows:
+            handle.write(f"{tsv(where)}\t{doc_id}\t{tsv(title)}\n")
+
+    kinds = Counter(kind for _, kind, _ in log)
+    touched = len({article_id for article_id, kind, _ in log if kind != "retitle"})
+    print("cleanup", dict(kinds), "articles touched", touched)
+    print("same-named titles in one folder", len(rows))
+    print("reports", os.path.relpath(CLEANUP_REPORT, ROOT), os.path.relpath(SAME_TITLES_REPORT, ROOT))
+
+
 def main() -> None:
     if not os.path.isfile(CATALOG_PATH):
         raise SystemExit(f"Missing catalog: {CATALOG_PATH}")
@@ -280,6 +321,7 @@ def main() -> None:
     english_count = 0
     largest = (0, "")
     read_ids = existing_read_ids()
+    cleanup_log: list[tuple] = []
     clear_output()
     os.makedirs(BODIES, exist_ok=True)
 
@@ -300,8 +342,15 @@ def main() -> None:
             node = child
         has_body = index in assigned
         blocks: list[dict] = []
+        title = TITLE_OVERRIDES.get(index, article["title"])
         if has_body:
-            blocks = to_blocks(read_txt(os.path.join(ATTACH, assigned[index])))
+            paras = paragraphs(read_txt(os.path.join(ATTACH, assigned[index])))
+            cleaned, title = clean_text(paras, article["title"], index, cleanup_log)
+            if not cleaned and paras:
+                # Nothing but the title: show it once rather than "text missing".
+                cleaned = [paras[0]]
+                cleanup_log.append((index, "kept", paras[0]))
+            blocks = to_blocks(cleaned)
             has_body = len(blocks) > 0
         if has_body:
             payload = json.dumps({"blocks": blocks}, ensure_ascii=False, separators=(",", ":"))
@@ -316,12 +365,12 @@ def main() -> None:
         node["docs"].append(
             {
                 "id": index,
-                "title": article["title"],
+                "title": title,
                 "chars": article["characters"],
                 "body": has_body,
             }
         )
-        search.append([slug, index, article["title"], 1 if has_body else 0])
+        search.append([slug, index, title, 1 if has_body else 0])
         if (index + 1) % 4000 == 0:
             print(f"built {index + 1}/{len(articles)}", flush=True)
 
@@ -405,6 +454,8 @@ def main() -> None:
         "};\n"
     )
     dump_checked(CATALOG_TS, catalog_ts)
+
+    write_cleanup_reports(cleanup_log, trees, label_by_section)
 
     title_only = len(search) - body_count
     print("articles", len(search))

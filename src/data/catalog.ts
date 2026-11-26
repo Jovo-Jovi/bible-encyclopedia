@@ -576,7 +576,7 @@ export const catalog = {
     {
       "slug": "11",
       "id": 5137,
-      "title": "Normal",
+      "title": "ملخص المورمون من الألف إلى الياء",
       "label": "البدع والهرطقات",
       "chars": 27675
     },
