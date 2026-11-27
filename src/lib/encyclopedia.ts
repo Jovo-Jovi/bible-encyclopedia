@@ -180,9 +180,11 @@ export function arrange<T>(
   items: T[],
   label: (item: T) => string,
   mode: SortMode,
+  // Folder labels drop their "01-" prefix, so folders are checked by name.
+  sequenceText: (item: T) => string = label,
 ): { items: T[]; kept: boolean } {
   if (mode !== "az" || items.length < 2) return { items, kept: false };
-  if (isSequence(items.map(label))) return { items, kept: true };
+  if (isSequence(items.map(sequenceText))) return { items, kept: true };
   const sorted = items
     .map((item) => ({ item, key: sortKey(label(item)) }))
     .sort((a, b) => collator.compare(a.key, b.key))

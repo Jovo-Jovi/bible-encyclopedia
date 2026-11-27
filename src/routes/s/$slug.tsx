@@ -211,7 +211,7 @@ function FolderView({
   onOpen: (name: string) => void;
   onCrumb: (index: number) => void;
 }) {
-  const dirs = arrange(testamentOrder(node.dirs), (dir) => dir.label, sort);
+  const dirs = arrange(testamentOrder(node.dirs), (dir) => dir.label, sort, (dir) => dir.name);
   const docs = arrange(node.docs, (doc) => doc.title, sort);
   const lettered = sort === "az" && !docs.kept && docs.items.length >= LETTER_BAR_MIN;
   return (
