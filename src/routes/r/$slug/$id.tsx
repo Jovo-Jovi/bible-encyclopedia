@@ -79,7 +79,16 @@ function ReaderPage() {
     located && located.index < located.node.docs.length - 1
       ? located.node.docs[located.index + 1]
       : null;
-  const crumbs = located ? located.trail.map((node) => node.label) : [];
+  // Each crumb opens its folder in the section page (?d=folder/subfolder).
+  const crumbs = located
+    ? located.trail.map((node, index) => ({
+        label: node.label,
+        path: located.trail
+          .slice(0, index + 1)
+          .map((step) => step.name)
+          .join("/"),
+      }))
+    : [];
 
   return (
     <Shell mark={`/art/topics/${slug}.png`}>
@@ -94,9 +103,11 @@ function ReaderPage() {
             {meta?.label ?? "القسم"}
           </Link>
           {crumbs.map((crumb) => (
-            <span key={crumb} className="contents">
+            <span key={crumb.path} className="contents">
               <span aria-hidden="true">/</span>
-              <span>{crumb}</span>
+              <Link to="/s/$slug" params={{ slug }} search={{ d: crumb.path, only: "" }}>
+                {crumb.label}
+              </Link>
             </span>
           ))}
         </div>
@@ -131,7 +142,9 @@ function ReaderPage() {
 
         {!doc && !error ? <SkeletonText /> : null}
 
-        {doc && missingBody ? <MissingText sectionLabel={meta?.label ?? ""} bodies={meta?.bodies ?? 0} /> : null}
+        {doc && missingBody ? (
+          <MissingText slug={slug} sectionLabel={meta?.label ?? ""} bodies={meta?.bodies ?? 0} />
+        ) : null}
 
         {doc && !missingBody && !blocks && !error ? <SkeletonText /> : null}
 
@@ -153,7 +166,15 @@ function ReaderPage() {
   );
 }
 
-function MissingText({ sectionLabel, bodies }: { sectionLabel: string; bodies: number }) {
+function MissingText({
+  slug,
+  sectionLabel,
+  bodies,
+}: {
+  slug: string;
+  sectionLabel: string;
+  bodies: number;
+}) {
   return (
     <div className="mt-8 rounded-lg bg-paper px-5 py-5">
       <p className="font-serif text-xl">النص غير مرفوع</p>
@@ -163,14 +184,20 @@ function MissingText({ sectionLabel, bodies }: { sectionLabel: string; bodies: n
         {bodies > 0 ? `، منها ${arNum(bodies)} في ${sectionLabel}` : ""}. يمكن تصفح بقية العناوين والعودة
         عندما يُرفع النص.
       </p>
-      <Link
-        to="/s/$slug"
-        params={{ slug: "11" }}
-        search={{ d: "", only: "1" }}
-        className="mt-4 inline-flex min-h-11 items-center text-crimson"
-      >
-        النصوص المتاحة في البدع والهرطقات
-      </Link>
+      {bodies > 0 ? (
+        <Link
+          to="/s/$slug"
+          params={{ slug }}
+          search={{ d: "", only: "1" }}
+          className="mt-4 inline-flex min-h-11 items-center text-crimson"
+        >
+          النصوص المتاحة في {sectionLabel}
+        </Link>
+      ) : (
+        <Link to="/" search={{ q: "" }} className="mt-4 inline-flex min-h-11 items-center text-crimson">
+          العودة للفهرس
+        </Link>
+      )}
     </div>
   );
 }

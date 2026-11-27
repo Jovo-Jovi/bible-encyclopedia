@@ -19,7 +19,7 @@ What is removed, per article:
 Everything else is kept: real headings that repeat further down an article,
 and repeated table cells ("X", "نعم", "نؤمن") whose repetition is the content.
 
-Titles that are themselves leftovers ("Normal", "*", "o أحوال") are replaced
+Titles that are themselves leftovers ("Normal", "*", "o أحوال", "9.35 pt") are replaced
 by the article's first real line, or by an entry in TITLE_OVERRIDES.
 """
 
@@ -73,7 +73,8 @@ def is_signature(para: str) -> bool:
 
 
 def is_junk_title(title: str) -> bool:
-    return bool(JUNK_TITLE.match(title.strip()))
+    # "9.35 pt" and the like: a Word metadata line used as the title.
+    return bool(JUNK_TITLE.match(title.strip())) or is_signature(title)
 
 
 def short_title(text: str) -> str:
