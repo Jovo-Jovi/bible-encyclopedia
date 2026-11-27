@@ -111,7 +111,13 @@ function main(argv) {
     process.exit(2);
   }
   const env = mergeAppEnv(readAppEnv(projectRoot()), process.env);
-  const child = spawn(command, args, { stdio: "inherit", env });
+  // On Windows a bare name like `vite` is an npm .cmd shim that only a shell
+  // can run. The npm scripts pass it plain words, so joining them is safe.
+  // Anything else (a full path to node, say) still runs without a shell.
+  const viaShell = process.platform === "win32" && /^[\w.-]+$/.test(command);
+  const child = viaShell
+    ? spawn([command, ...args].join(" "), { stdio: "inherit", env, shell: true })
+    : spawn(command, args, { stdio: "inherit", env });
   // The dev server is long-running and is stopped by signalling this wrapper.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
     process.on(signal, () => child.kill(signal));

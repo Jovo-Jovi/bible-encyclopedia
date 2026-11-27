@@ -59,10 +59,6 @@ test("an explicit process-env override wins over the file", () => {
   assert.equal(merged.PATH, "/usr/bin");
 });
 
-test("the template ships auth off", () => {
-  assert.deepEqual(readAppEnv(projectRoot()), { VITE_AUTH_ENABLED: "false" });
-});
-
 test("vite loadEnv resolves the wrapped value", () => {
   // What `import.meta.env.VITE_AUTH_ENABLED` becomes: loadEnv prefix-matches
   // process.env, so the wrapper's merge has to land before Vite starts.
@@ -73,13 +69,14 @@ test("vite loadEnv resolves the wrapped value", () => {
   assert.equal(merged.VITE_AUTH_ENABLED, "false");
 });
 
-test("the wrapped command runs with the app env applied", async () => {
-  const { stdout } = await execFileAsync(process.execPath, [
-    WRAPPER,
+// The repo ships no .grok/app-env.json, so these pass the flag through the
+// environment and check the wrapped command receives it.
+test("the wrapped command runs with the environment applied", async () => {
+  const { stdout } = await execFileAsync(
     process.execPath,
-    "-e",
-    PRINT_FLAG,
-  ]);
+    [WRAPPER, process.execPath, "-e", PRINT_FLAG],
+    { env: { ...process.env, VITE_AUTH_ENABLED: "false" } },
+  );
   assert.equal(stdout, "false");
 });
 
@@ -118,11 +115,10 @@ test("the CLI still runs when invoked through a symlinked path", async () => {
   // turns the wrapper into a no-op that exits 0 without starting anything.
   const link = join(mkdtempSync(join(tmpdir(), "app-env-link-")), "scripts");
   symlinkSync(join(projectRoot(), "scripts"), link);
-  const { stdout } = await execFileAsync(process.execPath, [
-    join(link, "with-app-env.mjs"),
+  const { stdout } = await execFileAsync(
     process.execPath,
-    "-e",
-    PRINT_FLAG,
-  ]);
+    [join(link, "with-app-env.mjs"), process.execPath, "-e", PRINT_FLAG],
+    { env: { ...process.env, VITE_AUTH_ENABLED: "false" } },
+  );
   assert.equal(stdout, "false");
 });

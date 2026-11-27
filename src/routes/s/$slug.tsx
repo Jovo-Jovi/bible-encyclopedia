@@ -6,14 +6,22 @@ import { SkeletonRows } from "@/components/skeleton";
 import { catalog } from "@/data/catalog";
 import {
   arNum,
+  arrange,
   findNode,
   flattenDocs,
+  letterOf,
   loadSection,
   normalizeAr,
+  testamentOrder,
   type FlatDoc,
   type SectionFile,
+  type SortMode,
   type TreeNode,
 } from "@/lib/encyclopedia";
+import { useReading } from "@/lib/reading";
+
+/** Long alphabetical lists get a bar of letters to jump with. */
+const LETTER_BAR_MIN = 30;
 
 export const Route = createFileRoute("/s/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -31,6 +39,8 @@ function SectionPage() {
   const [file, setFile] = useState<SectionFile | null>(null);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("");
+  const sort: SortMode = useReading((state) => state.sorts[slug] ?? "");
+  const setSort = useReading((state) => state.setSort);
 
   useEffect(() => {
     if (!meta) return;
@@ -95,24 +105,31 @@ function SectionPage() {
           />
         </label>
 
-        {meta.bodies > 0 ? (
-          <div className="mt-3 flex gap-2">
-            <FilterChip
-              active={only !== "1"}
-              label="الكل"
-              onClick={() => {
-                void navigate({ search: { d, only: "" } });
-              }}
-            />
-            <FilterChip
-              active={only === "1"}
-              label="فيها نص"
-              onClick={() => {
-                void navigate({ search: { d, only: "1" } });
-              }}
-            />
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {meta.bodies > 0 ? (
+            <div className="flex gap-2" role="group" aria-label="ما يظهر">
+              <FilterChip
+                active={only !== "1"}
+                label="الكل"
+                onClick={() => {
+                  void navigate({ search: { d, only: "" } });
+                }}
+              />
+              <FilterChip
+                active={only === "1"}
+                label="فيها نص"
+                onClick={() => {
+                  void navigate({ search: { d, only: "1" } });
+                }}
+              />
+            </div>
+          ) : null}
+          <div className="ms-auto flex items-center gap-2" role="group" aria-label="الترتيب">
+            <span className="text-sm text-muted">الترتيب</span>
+            <FilterChip active={sort === ""} label="الأصلي" onClick={() => setSort(slug, "")} />
+            <FilterChip active={sort === "az"} label="أبجدي" onClick={() => setSort(slug, "az")} />
           </div>
-        ) : null}
+        </div>
 
         {error ? <p className="mt-6 text-crimson">{error}</p> : null}
         {!file && !error ? <SkeletonRows count={6} /> : null}
@@ -125,6 +142,7 @@ function SectionPage() {
           <DocList
             docs={flattenDocs(node ?? file.tree).filter((doc) => doc.body)}
             slug={slug}
+            sort={sort}
           />
         ) : null}
 
@@ -133,6 +151,7 @@ function SectionPage() {
             slug={slug}
             node={node}
             parts={parts}
+            sort={sort}
             onOpen={(name) => {
               void navigate({
                 search: { d: [...parts, name].join("/"), only: "" },
@@ -181,15 +200,20 @@ function FolderView({
   slug,
   node,
   parts,
+  sort,
   onOpen,
   onCrumb,
 }: {
   slug: string;
   node: TreeNode;
   parts: string[];
+  sort: SortMode;
   onOpen: (name: string) => void;
   onCrumb: (index: number) => void;
 }) {
+  const dirs = arrange(testamentOrder(node.dirs), (dir) => dir.label, sort, (dir) => dir.name);
+  const docs = arrange(node.docs, (doc) => doc.title, sort);
+  const lettered = sort === "az" && !docs.kept && docs.items.length >= LETTER_BAR_MIN;
   return (
     <div className="mt-6">
       {parts.length > 0 ? (
@@ -208,37 +232,44 @@ function FolderView({
         </nav>
       ) : null}
 
-      {node.dirs.length > 0 ? (
-        <ul className="space-y-2">
-          {node.dirs.map((dir) => (
-            <li key={dir.name}>
-              <button
-                type="button"
-                onClick={() => onOpen(dir.name)}
-                className="panel flex w-full min-h-11 items-center justify-between gap-3 px-4 py-3 text-start"
-              >
-                <span>
-                  <span className="block font-medium">{dir.label}</span>
-                  <span className="text-sm text-muted">{arNum(dir.count)} عنواناً</span>
-                </span>
-                <span className="flex items-center gap-2 text-sm text-muted">
-                  {dir.bodies > 0 ? <span className="text-crimson">{arNum(dir.bodies)} نص</span> : null}
-                  <ChevronLeft className="size-4" aria-hidden="true" />
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+      {dirs.items.length > 0 ? (
+        <>
+          {dirs.kept ? <KeptNote /> : null}
+          <ul className="space-y-2">
+            {dirs.items.map((dir) => (
+              <li key={dir.name}>
+                <button
+                  type="button"
+                  onClick={() => onOpen(dir.name)}
+                  className="panel flex w-full min-h-11 items-center justify-between gap-3 px-4 py-3 text-start"
+                >
+                  <span>
+                    <span className="block font-medium">{dir.label}</span>
+                    <span className="text-sm text-muted">{arNum(dir.count)} عنواناً</span>
+                  </span>
+                  <span className="flex items-center gap-2 text-sm text-muted">
+                    {dir.bodies > 0 ? <span className="text-crimson">{arNum(dir.bodies)} نص</span> : null}
+                    <ChevronLeft className="size-4" aria-hidden="true" />
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
       ) : null}
 
-      {node.docs.length > 0 ? (
-        <ul className={node.dirs.length > 0 ? "panel mt-4 divide-y divide-line overflow-hidden" : "panel divide-y divide-line overflow-hidden"}>
-          {node.docs.map((doc) => (
-            <li key={doc.id}>
-              <DocLink slug={slug} doc={doc} />
-            </li>
-          ))}
-        </ul>
+      {docs.items.length > 0 ? (
+        <div className={dirs.items.length > 0 ? "mt-4" : undefined}>
+          {docs.kept ? <KeptNote /> : null}
+          {lettered ? <LetterBar docs={docs.items} listId="docs" /> : null}
+          <ul className="panel divide-y divide-line overflow-hidden">
+            {docs.items.map((doc, index) => (
+              <li key={doc.id} id={lettered ? letterAnchor(docs.items, index, "docs") : undefined} className="scroll-mt-24">
+                <DocLink slug={slug} doc={doc} />
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
 
       {node.dirs.length === 0 && node.docs.length === 0 ? (
@@ -248,19 +279,68 @@ function FolderView({
   );
 }
 
+function KeptNote() {
+  return <p className="mb-2 text-sm text-muted">هذه القائمة متسلسلة، فبقيت بترتيبها الأصلي.</p>;
+}
+
+/** The anchor id for the first title under each letter, or undefined. */
+function letterAnchor(docs: { title: string }[], index: number, listId: string): string | undefined {
+  const letter = letterOf(docs[index].title);
+  if (index > 0 && letterOf(docs[index - 1].title) === letter) return undefined;
+  return `${listId}-${letter}`;
+}
+
+function LetterBar({ docs, listId }: { docs: { title: string }[]; listId: string }) {
+  const letters: string[] = [];
+  for (const doc of docs) {
+    const letter = letterOf(doc.title);
+    if (letters[letters.length - 1] !== letter) letters.push(letter);
+  }
+  return (
+    <nav className="mb-3 flex flex-wrap gap-1.5" aria-label="انتقل إلى حرف">
+      {letters.map((letter) => (
+        <button
+          key={letter}
+          type="button"
+          className="panel flex size-10 items-center justify-center rounded-full font-serif text-lg"
+          onClick={() =>
+            document.getElementById(`${listId}-${letter}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+        >
+          {letter === "#" ? "#" : letter}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 function nodeLabel(name: string): string {
   return name.replace(/^\d+-/, "");
 }
 
-function DocList({ docs, slug, note }: { docs: FlatDoc[]; slug: string; note?: boolean }) {
+function DocList({
+  docs,
+  slug,
+  note,
+  sort = "",
+}: {
+  docs: FlatDoc[];
+  slug: string;
+  note?: boolean;
+  sort?: SortMode;
+}) {
   if (docs.length === 0) {
     return <p className="mt-6 text-muted">لا شيء هنا.</p>;
   }
+  const arranged = arrange(docs, (doc) => doc.title, sort);
+  const lettered = sort === "az" && !arranged.kept && arranged.items.length >= LETTER_BAR_MIN;
   return (
     <div className="mt-6">
+      {arranged.kept ? <KeptNote /> : null}
+      {lettered ? <LetterBar docs={arranged.items} listId="flat" /> : null}
       <ul className="panel divide-y divide-line overflow-hidden">
-        {docs.map((doc) => (
-          <li key={doc.id}>
+        {arranged.items.map((doc, index) => (
+          <li key={doc.id} id={lettered ? letterAnchor(arranged.items, index, "flat") : undefined} className="scroll-mt-24">
             <DocLink slug={slug} doc={doc} trail={doc.trail.join(" · ")} />
           </li>
         ))}

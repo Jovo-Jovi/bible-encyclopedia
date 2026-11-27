@@ -1,0 +1,10 @@
+# Keep text files with LF line endings on every machine, so files the build
+# scripts write on Windows don't show up as changed.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

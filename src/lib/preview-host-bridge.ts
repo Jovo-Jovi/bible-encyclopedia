@@ -6,8 +6,10 @@
  */
 
 import { z } from "zod";
-import { CONNECTOR_TOKEN_READY_EVENT } from "./app-data/types";
 import { resolveParentEmbedderOrigin } from "./preview-embedder-origin";
+
+/** Window event fired when the builder host says a connector token is ready. */
+const CONNECTOR_TOKEN_READY_EVENT = "grok:connector-token-ready";
 
 export {
   isGrokEmbedderOrigin,

@@ -120,6 +120,78 @@ export function flattenDocs(node: TreeNode, trail: string[] = []): FlatDoc[] {
   );
 }
 
+/** How a section's lists are ordered. "" keeps the source order. */
+export type SortMode = "" | "az";
+
+const collator = new Intl.Collator("ar", { sensitivity: "base", numeric: true });
+
+/** Sort key: normalized, without a leading "ال" as in Arabic indexes. */
+export function sortKey(label: string): string {
+  return normalizeAr(label.replace(/^\d+-/, "")).replace(/^ال(?=\S{2})/, "");
+}
+
+/** The letter a label is filed under in an alphabetical list. */
+export function letterOf(label: string): string {
+  const first = sortKey(label).charAt(0);
+  return /[ء-ي]/.test(first) ? first : "#";
+}
+
+// Matched against normalizeAr() output (no hamza forms, ى→ي, ة→ه). JavaScript's
+// \b doesn't see Arabic letters, so word ends are spelled out as (?=\s|\d|$).
+const SEQUENCE_WORD =
+  /^(?:(?:ال)?(?:اصحاح|فصل|باب|جزء|مزمور|رد|مقاله|درس|محاضره|حلقه|مناظره|ملحق)|chapter|part|book)(?=\s|\d|$)/i;
+const ORDINAL =
+  /(?:^|\s)(?:الاول|الاولي|الثاني|الثانيه|الثالث|الثالثه|الرابع|الرابعه|الخامس|الخامسه|السادس|السادسه|السابع|السابعه|الثامن|الثامنه|التاسع|التاسعه|العاشر|العاشره|عشر|عشره|العشرون|الثلاثون|الاربعون|الخمسون|الستون|السبعون|الثمانون|التسعون|المئه|المائه|اولا|ثانيا|ثالثا|رابعا|خامسا)(?=\s|$)/;
+// "12-…", "(3)…", "(ب)…", "… 7", "… سنة 230م"
+const NUMBERED = /^\(?\s*\d|^\(\s*[ء-ي]\s*\)|\d\s*م?\s*$/;
+
+/**
+ * True when most labels in a list are numbered or ordinal ("01-…", "الفصل
+ * الأول", "الإصحاح الثاني"), so the source order is the reading order.
+ */
+export function isSequence(labels: string[]): boolean {
+  if (labels.length < 3) return false;
+  const hits = labels.filter((label) => {
+    const raw = label.trim();
+    const key = normalizeAr(raw);
+    return NUMBERED.test(raw) || SEQUENCE_WORD.test(key) || ORDINAL.test(key);
+  }).length;
+  return hits / labels.length >= 0.5;
+}
+
+const OLD_TESTAMENT = /^(?:ال)?عهد (?:ال)?قديم/;
+const NEW_TESTAMENT = /^(?:ال)?عهد (?:ال)?جديد/;
+
+/** Puts the Old Testament before the New where a source listed them the other way. */
+export function testamentOrder<T extends { label: string }>(items: T[]): T[] {
+  const oldAt = items.findIndex((item) => OLD_TESTAMENT.test(normalizeAr(item.label)));
+  const newAt = items.findIndex((item) => NEW_TESTAMENT.test(normalizeAr(item.label)));
+  if (oldAt < 0 || newAt < 0 || oldAt < newAt) return items;
+  const result = items.slice();
+  [result[oldAt], result[newAt]] = [result[newAt], result[oldAt]];
+  return result;
+}
+
+/**
+ * Orders one list for display. In "az" mode a numbered or ordinal list keeps
+ * its source order; `kept` tells the page so it can say why.
+ */
+export function arrange<T>(
+  items: T[],
+  label: (item: T) => string,
+  mode: SortMode,
+  // Folder labels drop their "01-" prefix, so folders are checked by name.
+  sequenceText: (item: T) => string = label,
+): { items: T[]; kept: boolean } {
+  if (mode !== "az" || items.length < 2) return { items, kept: false };
+  if (isSequence(items.map(sequenceText))) return { items, kept: true };
+  const sorted = items
+    .map((item) => ({ item, key: sortKey(label(item)) }))
+    .sort((a, b) => collator.compare(a.key, b.key))
+    .map((entry) => entry.item);
+  return { items: sorted, kept: false };
+}
+
 export const GROUPS: { id: string; title: string; slugs: string[] }[] = [
   {
     id: "text",
